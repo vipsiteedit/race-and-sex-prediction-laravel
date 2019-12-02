@@ -56,7 +56,7 @@ npm install
 ```
 
 
-сервис маботает с облачным API
+сервис работает с облачным API
 ```
 curl -F 'image=@image.jpg' \
      -X POST http://race-and-sex-prediction-dev.us-east-2.elasticbeanstalk.com/predict
