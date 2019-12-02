@@ -5,7 +5,7 @@ services:
         image: nginx:latest
         # маршрутизируем порты
         ports:
-            - "8010:80"
+            - "8012:80"
         # монтируем директории, слева директории на основной машине, справа - куда они монтируются в контейнере
         volumes:
             - ./hosts:/etc/nginx/conf.d
@@ -39,7 +39,7 @@ services:
         links:
             - mysql:mysql
         ports:
-            - 8110:80
+            - 8112:80
         environment:
             # прописываем название нашего MySQL хоста
             PMA_HOST: mysql

@@ -2,81 +2,65 @@
 
 namespace App\Http\Controllers;
 
+use App\Face;
 use Illuminate\Http\Request;
-use mysql_xdevapi\Exception;
+use App\Jobs\SendApiImage;
 
 
 class ImageController extends Controller
 {
     const MAX_IMAGE_SIZE = 2048000;
+
     /**
      * @param Request $request
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @return mixed|\Symfony\Component\HttpFoundation\ParameterBag
      */
     public function upload(Request $request)
     {
-        $path = $request->file('image')->store('uploads', 'not_public');
+        try {
+            $path = $request->file('image')->store('uploads', 'not_public');
+            // отправляем имя файла в API
+            $pathImage = storage_path() . '/app/not_public/' . $path;
 
-        // отправляем имя файла в API
-        $imagePath = storage_path() . '/app/not_public/' . $path;
+            // Создаем запись в таблице процессов и получаеи ID для дальнейшей идентификации и получения результата
+            $token = md5($pathImage);
+            $process =  (new Face);
+            $process->name = 'test';
+            $process->photo = basename($pathImage);
+            $process->token = $token;
+            $process->save();
+            if ($process->id && file_exists($pathImage)) {
+                // Добавляем обработчик в очередь
+                SendApiImage::dispatch($pathImage);
+                return json_encode(['status' => 'success', 'result' => $token]);
+            } else {
+                return json_encode(['status' => 'error', 'error' => 'Что-то пошло не так, не сформирован ']);
+            }
 
-        echo json_encode($this->postApi($imagePath));
-        exit;
+        } catch(\Exception $e) {
+            info($e->getMessage());
+            return json_encode(['status' => 'error', 'error' => $e->getMessage()]);
+        }
     }
 
     /**
-     * @param string $imagePath
-     * @return mixed
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @param $idProcess
+     * @return false|string
      */
-    private function postApi(string $imagePath)
+    public function checkProcess($token)
     {
-        try {
-
-            $client = new \GuzzleHttp\Client();
-            $url = "http://race-and-sex-prediction-dev.us-east-2.elasticbeanstalk.com/predict";
-            $fileSize = filesize($imagePath);
-            if ($fileSize > self::MAX_IMAGE_SIZE) {
-                $message = sprintf('Larger image file size %s kb!', round(self::MAX_IMAGE_SIZE / 1000));
-                throw new \Exception($message);
-            }
-            $fileContent = \File::get($imagePath);
-
-            //Удаляем использованный файл
-            unlink($imagePath);
-
-            $imageName = basename($imagePath);
-
-            $res = $client->request( 'POST',$url,
-                    ['multipart' => [
-                        [
-                            'name'      => 'image',
-                            'contents'  => $fileContent,
-                            'filename'  => $imageName
-                        ],
-                    ]
-                ]
-            );
-
-            if($res->getStatusCode() != 200) {
-                $message = sprintf('Error %s while receiving data from the API service', $res->getStatusCode());
-                throw new \Exception($message);
-
+        $process = JobsProcess::where('token', $token)->first();
+        if (empty($process)) {
+            $massage  = sprintf('Не найден процесс "%s" для работы с API', $idProcess);
+            //throw new \Exception($massage);
+            info($massage);
+            return json_encode(['status' => 'error', 'error' => $massage], JSON_UNESCAPED_UNICODE);
+        } else {
+            if ($process->getCompleted()) {
+                return json_encode(['status'=>'success', 'result'=>$process->getResult()], JSON_UNESCAPED_UNICODE);
             } else {
-                $response = json_decode($res->getBody());
-                if (!empty($response)) {
-                    return array('status' => 'success', 'result' => $response);
-                } else {
-                    $message = sprintf('I can not process this image. Try uploading another image!');
-                    throw new \Exception($message);
-                }
+                return json_encode(['status'=>'process']);
             }
-        } catch (\Exception $e) {
-            // Логируем ошибки
-            $message = $e->getMessage();
-            \Log::error($message);
-            return array('status'=>'error', 'error'=>$message);
         }
-
     }
 }

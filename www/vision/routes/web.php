@@ -12,7 +12,18 @@
 */
 
 Route::get('/', function () {
-    return view('index');
+    //return view('index');
+    return view('welcome');
+
 });
 
+
 Route::post('/image/upload', 'ImageController@upload')->name('image.upload');
+
+Route::get('/image/process/{id}', 'ImageController@checkProcess')->name('image.check');
+
+
+Route::get('/home', 'HomeController@index')->name('home');
+
+//Auth::routes();
+

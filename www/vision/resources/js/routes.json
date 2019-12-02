@@ -1,0 +1,14 @@
+{
+    "": "password\/confirm",
+    "image.upload": "image\/upload",
+    "image.check": "image\/process\/{id}",
+    "home": "home",
+    "login": "login",
+    "logout": "logout",
+    "register": "register",
+    "password.request": "password\/reset",
+    "password.email": "password\/email",
+    "password.reset": "password\/reset\/{token}",
+    "password.update": "password\/reset",
+    "password.confirm": "password\/confirm"
+}
