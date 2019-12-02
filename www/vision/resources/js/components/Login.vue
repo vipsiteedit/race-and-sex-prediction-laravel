@@ -2,7 +2,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="alert alert-danger" v-if="error">
-                <p>There was an error, unable to sign in with those credentials.</p>
+                <p>Произошла ошибка. Не удалось войти с этими учетными данными.</p>
             </div>
             <form autocomplete="off" @submit.prevent="login" Метод = «пост»>
                 <div class="form-group">
@@ -10,10 +10,10 @@
                     <input type="email" id="email" class="form-control" placeholder="user@example.com" v-model="email" required>
                 </div>
                 <div class="form-group">
-                    <label for="password">Password</label>
+                    <label for="password">Пароль</label>
                     <input type="password" id="password" class="form-control" v-model="password" required>
                 </div>
-                <button type="submit" class="btn btn-default">Sign in</button>
+                <button type="submit" class="btn btn-default">Войти в систему</button>
             </form>
         </div>
     </div>
