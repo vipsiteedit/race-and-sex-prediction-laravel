@@ -34,7 +34,12 @@ Password: root
 ```
 composer install
 ```
-Можно запустить из Laravel
+Обновляем миграции
+```
+php artisav migrate:refresh
+```
+
+Можно запустить проект из Laravel
 ```
 php artisav serv
 ```
